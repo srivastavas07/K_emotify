@@ -6,8 +6,8 @@ import Playlist from './components/PlaylistCard';
 
 
 
-const CLIENT_ID = "31bfd2e1fde24e9ba96074a983a38f80"
-const CLIENT_SECRET = "36078cc7cf8449c583e948a99693360a"
+const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
+const CLIENT_SECRET = process.env.REACT_APP_CLIENT_SECRET;
 
 function App() {
 
@@ -35,7 +35,7 @@ function App() {
     startVideo()
     videoRef && loadModels()
 
-  }, [])
+  },[])
 
   // OPEN YOU FACE WEBCAM
   const startVideo = () => {
@@ -144,8 +144,6 @@ function App() {
           }
         });
         setCurrentEmotion(maxEmotion);
-        
-        
 
       } else {
         console.log("No expressions available in the first detection.");
@@ -153,9 +151,10 @@ function App() {
     } else {
       console.log("No detections available.");
     }
-    console.log(currentEmotion);
-    setSearchValue(currentEmotion)
   }
+  useEffect(()=>{
+    setSearchValue(currentEmotion)
+  },[currentEmotion]);
 
   async function GenreSearch() {
     // we need to pass the genre associated to that emotion 
@@ -200,6 +199,7 @@ function App() {
     .catch(error => console.error('Error:', error));
   }
   const albumSearch =()=> {
+    console.log('Album Search');
     return
   }
 
@@ -258,10 +258,10 @@ function App() {
       <section className="emotion-container w-[100vw] py-8 bg-slate-400 text-white relative z-10">
         {tracks.length === 0 ? (<p className='text-black font-semibold text-2xl w-[100%] text-center'>No Data available...!!</p>) : (
           <>
-            <div className='songOptions w-[100%] flex justify-center items-center'>
-              <button onClick={GenreSearch} className='btn OptionButton genreButton mx-2' aria-label = {'Current Genre is ' + emotionGener}>Genre</button>
-              <button onClick={albumSearch} className = 'btn OptionButton albumButton'>Album</button>
-              <button onClick={playlistSearch} className = 'btn OptionButton mx-2 playlistButton'>Playlist</button>
+            <div className='songOptions w-[100%] flex justify-center items-center gap-3'>
+              <button onClick={GenreSearch} className='btn OptionButton genreButton' aria-label = {'Current Genre is ' + emotionGener}>Genre</button>
+              {/* <button onClick={albumSearch} className = 'btn OptionButton albumButton'>Album</button> */}
+              <button onClick={playlistSearch} className = 'btn OptionButton playlistButton'>Playlist</button>
               <button onClick={search} className='btn OptionButton trackButton'>Track</button>
 
             </div>
