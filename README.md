@@ -45,7 +45,7 @@ Emotify is a web application that combines facial emotion recognition with Spoti
 - Expand music recommendation options. 📈
 
 ## Screenshot
-- ![SS](./preview/kemotify_landing_page.png)
+![SS](./preview/kemotify_landing_page.png)
 
 ## Contributors
 - [Kunal Chandra](https://github.com/srivastavas07) 👤
