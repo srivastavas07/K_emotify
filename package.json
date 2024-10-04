@@ -1,5 +1,5 @@
 {
-  "name": "react-tailwind-css-starter-pack",
+  "name": "kemotify",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -18,11 +18,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thepranaygupta/react-tailwind-css-starter-pack.git"
+    "url": "git+https://github.com/srivastavas07/K_emotify.git"
   },
-  "author": "Pranay Gupta",
+  "author": "Kunal Chandra",
   "bugs": {
-    "url": "https://github.com/thepranaygupta/react-tailwind-css-starter-pack/issues"
+    "url": "https://github.com/srivastavas07/K_emotify.git"
   },
   "scripts": {
     "start": "react-scripts start",
