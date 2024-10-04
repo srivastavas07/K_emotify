@@ -1,31 +1,51 @@
-# React & Tailwind CSS Starter Pack
+# kEmotify: Emotion based listening 🎶😊
 
-This is a starter pack for creating React projects with Tailwind CSS configured. It uses React version **18.2** and Tailwind CSS version **3.2**.
+## Introduction
+Emotify is a web application that combines facial emotion recognition with Spotify API integration to provide a unique music experience. By detecting your emotions in real-time, Emotify helps you explore music that resonates with your feelings. 💖
 
-## Usage
+## Features
+- **Detect Your Emotion**: Use your webcam to identify your dominant emotion in real-time. 😄😢😠
+- **Emotion-Based Music Search**: Based on your detected emotion, explore curated playlists or genre-specific music suggestions. 🎧
+- **Manual Search Integration**: You can still search for music manually by artist, song title, or keywords. 🔍
 
-This starter pack includes a basic setup for using **Tailwind CSS with React**. To start building your own components and styles, follow these steps:
+## Technology Stack
+- **React.js**: For building the user interface. ⚛️
+- **face-api.js**: For facial emotion recognition. 🤖
+- **Spotify API**: For music search and playback. 🎵
 
-1. Clone the repository to your local machine.
-    ```sh
-    git clone https://github.com/thepranaygupta/react-tailwind-css-starter-pack.git
+## Getting Started
+1. Clone this repository:
+    ```bash
+    git clone https://github.com/yourusername/emotify.git
+    cd emotify
     ```
 
-1. Install the required packages.
-    ```sh
-    cd react-tailwind-css-starter-pack
+2. Install dependencies:
+    ```bash
     npm install
     ```
 
-1. Start the development server.
-    ```sh
-    npm start
+3. Create a `.env` file in the root directory and add the following environment variables:
+    ```env
+    REACT_APP_CLIENT_ID=Your Spotify Client ID
+    REACT_APP_CLIENT_SECRET=Your Spotify Client Secret
     ```
-1. Open the project in your browser at [`http://localhost:3000`](http://localhost:3000) to view your project.
-1. Create your React components and add your styles using Tailwind classes. You can also create new CSS files and import them into your components.
 
-The project is set up to use `postcss-cli` to process your CSS files. You can add your own `tailwind.config.js` file to customize your Tailwind setup.
+## How It Works
+- The application accesses your webcam to detect your facial expressions. 📷
+- It identifies your dominant emotion (e.g., happy, sad, angry). 😌
+- Based on your emotion, it offers suggestions:
+  - Genre-based music recommendations. 🎶
+  - Curated playlists aligned with your emotional state. 📋
+- You can also search for music manually using the provided search bar. 🖊️
 
-## Contributing
+## Future Development
+- Enhance emotion recognition accuracy. 🔧
+- Implement song playback functionality. 🎤
+- Expand music recommendation options. 📈
 
-Contributions are welcome! If you have any suggestions or find any issues, please feel free to open an issue or a pull request.
+## Screenshot
+- ![SS](./preview/kemotify_landing_page.png)
+
+## Contributors
+- [Kunal Chandra](https://github.com/srivastavas07) 👤
