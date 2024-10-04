@@ -1,1 +1,53 @@
 /* write your css here */
+.emotion-container1{
+  background: url('https://images.ctfassets.net/c1zhnszcah7h/6W5MAZlqoH3pqFiavudrnW/1d7e7f68f01918f5fd17adbb8dd511aa/Redesigning_Spotify.Design_-_Inline_5_2x.png?w=2000&h=1177&q=96&fm=webp');
+  background-position: center;
+  background-size: cover;
+
+}
+.search{
+  background : black;
+  padding: 10px;
+  border-radius: 2px;
+}
+
+.trun{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition:all 1s;
+
+}
+.trun:hover{
+    position:relative;
+    overflow: visible;
+    text-overflow: unset !important;
+    background: white;
+    white-space:initial;
+    
+}
+
+.appvide{
+    display: flex;
+    align-items: center;
+    box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.592);
+    /* border:2px solid rgba(255, 255, 255, 0.433); */
+    border-radius: 5px;
+    border: 2.5px solid black;
+    overflow:hidden;
+  }
+  
+  .appcanvas{
+    position: absolute;
+    top: -100px;
+  }
+
+  .OptionButton{
+    border:2px solid rgba(255, 255, 255, 0.313) !important;
+    background-color:rgb(38, 38, 38) !important;
+  }
+  .OptionButton:hover{
+    background-color:black !important;
+    color:white;
+  }
+  
