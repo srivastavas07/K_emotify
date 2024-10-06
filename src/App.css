@@ -43,11 +43,20 @@
   }
 
   .OptionButton{
-    border:2px solid rgba(255, 255, 255, 0.313) !important;
+    border:1px solid rgba(255, 255, 255, 0.313) !important;
     background-color:rgb(38, 38, 38) !important;
   }
   .OptionButton:hover{
     background-color:black !important;
     color:white;
+  }
+  .OptionButtonActive{
+    background-color: black !important;
+    color:white !important;
+    border-width: 2px !important;
+    border-color: rgb(255, 255, 255) !important;
+  }
+  .dHeading{
+    font-size:xx-large !important;
   }
   

@@ -3,8 +3,9 @@ import "./App.css";
 import SongGrid from "./components/songCards";
 import * as faceapi from 'face-api.js'
 import Playlist from './components/PlaylistCard';
-
-
+import toast from 'react-hot-toast';
+import Lottie from 'lottie-react';
+import spotify from './Assets/spotify.json';
 
 const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
 const CLIENT_SECRET = process.env.REACT_APP_CLIENT_SECRET;
@@ -17,14 +18,17 @@ function App() {
   const [detection, setDetection] = useState([]);
   const [currentEmotion, setCurrentEmotion] = useState("");
   const [playlist, setPlaylist] = useState([]);
-  const [displaySection , setDisplaySection] = useState("SongGrid");
+  const [displaySection, setDisplaySection] = useState("SongGrid");
   const [emotionGener, setEmotionGener] = useState("");
+  const [type, setType] = useState("");
+  const [user, setUser] = useState();
 
   const emotionGenre = {
-    "happy": ["acoustic", "disco", "funk", "salsa","indian","chill"],
-    "angry": ["death-metal", "hard-rock", "metal", "punk"],
-    "surprised": ["anime", "chill", "comedy", "disney"],
-    "sad": ["blues", "country", "folk", "gospel", "jazz","indie","classical"]
+    "happy": ["indie happy hindi", "party", "arijit singh", "indian hindi", "chill hindi"],
+    "angry": ["punjabi", "fast beat", "honey singh", "bhajans","KK"],
+    "surprised": ["ed sheeran", "diljit dosanjh"],
+    "sad": ["sad hindi", "emotional sad hindi", "anuv jain", "kishore kumar", "classical hindi", "the local train"],
+    "neutral": ["chill hindi", "old songs", "ed sheeran", "satindar sartaj"]
   };
 
   const videoRef = useRef()
@@ -35,7 +39,7 @@ function App() {
     startVideo()
     videoRef && loadModels()
 
-  },[])
+  }, [])
 
   // OPEN YOU FACE WEBCAM
   const startVideo = () => {
@@ -78,7 +82,7 @@ function App() {
 
       const resized = faceapi.resizeResults(detections, {
         width: 940,
-        height:650,
+        height: 650,
       })
 
       faceapi.draw.drawDetections(canvasRef.current, resized)
@@ -89,32 +93,100 @@ function App() {
     }, 1000)
   }
 
+  const Login = () => {
 
-  useEffect(() => {
-    // Access the api access token
-    var authParameters = {
+    const REDIRECT_URI = "http://localhost:3000/callback";
+    const SCOPE = 'user-read-private user-read-email user-top-read user-library-read';
+    const AUTH_URL = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURI(SCOPE)}`;
+    window.location.href = AUTH_URL;
+    const queryParams = new URLSearchParams(window.location.search);
+    const code = queryParams.get('code');
+
+    //GETTING THE ACCESS TOKEN AND THE REFRESH TOKEN;
+
+    const authBody = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code: code,
+      redirect_uri: "http://localhost:3000/callback",
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET
+    });
+
+    fetch("https://accounts.spotify.com/api/token", {
       method: "POST",
       headers: {
-        'Content-type': 'application/x-www-form-urlencoded'
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: 'grant_type=client_credentials&client_id=' + CLIENT_ID + '&client_secret=' + CLIENT_SECRET + '&scope=user-library-read user-library-modify user-modify-playback-state'
-
-    }
-    fetch("https://accounts.spotify.com/api/token", authParameters)
+      body: authBody.toString()
+    })
       .then(response => response.json())
-      .then(data => setAccessToken(data.access_token))
-      .catch(error => console.log(error))
+      .then(data => {
+        localStorage.setItem('refresh_token', data.refresh_token);
+      })
+      .catch(error => console.log("Error: ", error));
 
-  }, [])
+  };
+  useEffect(() => {
+    //GETTING A NEW ACCESS TOKEN ON EVERY NEW RENDER OF THE APP COMPONENT.
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (refreshToken) {
+      const authBody = new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET
+      });
+
+      fetch("https://accounts.spotify.com/api/token", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: authBody.toString()
+      })
+        .then(response => response.json())
+        .then(data => {
+          setAccessToken(data.access_token);
+        })
+        .catch(error => console.log("Error: ", error));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (accessToken) {
+      GetUserInfo();
+    }
+  }, [accessToken]);
+
+  const GetUserInfo = async () => {
+
+    try {
+      const response = await fetch('https://api.spotify.com/v1/me', {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer ' + accessToken
+        },
+      });
+      const data = await response.json();
+      setUser(data);
+
+    } catch (error) {
+      console.error('Error fetching albums:', error);
+    }
+  };
 
   async function search() {
+    if(!searchValue){
+      toast.error("Provide query to search.")
+      return;
+    }
     const parameters = {
       method: 'GET',
       headers: {
         'Authorization': 'Bearer ' + accessToken,
       }
     };
-    const searchQuery = encodeURIComponent(searchValue); // Encode the search query
+    const searchQuery = encodeURIComponent(searchValue); // ENCODE THE SEARCH QUERY
 
     fetch(`https://api.spotify.com/v1/search?q=${searchQuery}&type=track`, parameters)
       .then(response => response.json())
@@ -122,6 +194,7 @@ function App() {
         // Process the data (data.tracks.items) to get the list of tracks
         setTracks(data.tracks.items);
         setDisplaySection("SongGrid");
+        setType("Search Result")
       })
       .catch(error => console.error('Error:', error));
   }
@@ -152,64 +225,96 @@ function App() {
       console.log("No detections available.");
     }
   }
-  useEffect(()=>{
-    setSearchValue(currentEmotion)
-  },[currentEmotion]);
+  useEffect(() => {
+
+    setSearchValue(currentEmotion);
+    console.log(currentEmotion);
+    // WE NEED TO PASS THE GENRE RELATED TO EMOTION.
+
+    if (currentEmotion) {
+      const emoLength = emotionGenre[currentEmotion].length;
+      const maxEmotionRandomGenre = emotionGenre[currentEmotion][Math.floor(Math.random() * emoLength)]
+      setEmotionGener(maxEmotionRandomGenre);
+    }
+
+  }, [currentEmotion]);
 
   async function GenreSearch() {
-    // we need to pass the genre associated to that emotion 
-    console.log('This is the Current Emotion'+currentEmotion);
-    const emoLength = emotionGenre[currentEmotion].length;
-    const maxEmotionRandomGenre = emotionGenre[currentEmotion][Math.floor(Math.random() * emoLength)]
-    setEmotionGener(maxEmotionRandomGenre);
-    console.log('Genre for the Emotion  '+ emotionGener)
+
+    // WILL FETCH SONG BASED ON THE EMOTION GENRE
+
     const parameters = {
       method: 'GET',
       headers: {
         'Authorization': 'Bearer ' + accessToken,
       }
     };
-    // const searchQuery = encodeURIComponent(currentEmotion); // Encode the search query
-    const searchQuery = encodeURIComponent(emotionGener); // Encode the search query
-    fetch(`https://api.spotify.com/v1/search?q=genre:${searchQuery}&type=track`,parameters)
-    // fetch('https://api.spotify.com/v1/search?query=genre%3Achill&type=track&locale=hi-IN', parameters)
+    const searchQuery = encodeURIComponent(emotionGener);
+
+    fetch(`https://api.spotify.com/v1/search?q=${searchQuery}&type=track&market=IN`, parameters)
       .then(response => response.json())
       .then(data => { setTracks(data.tracks.items); console.log(data.tracks) })
       .catch(error => console.error('Error:', error));
     console.log('Tracks');
     console.log(tracks);
     setDisplaySection("SongGrid");
+    setType("Genre Based");
 
   }
-  const playlistSearch = () => {
-    //some issue here regarding data fetch..
-    const genre = 'jazz';
-    const country = 'US';
-    const locale = 'hi_IN';
-    const limit = '50';
+  const playlistSearch = async () => {
     const parameters = {
       method: 'GET',
       headers: {
         'Authorization': 'Bearer ' + accessToken,
       }
     };
-    fetch(`https://api.spotify.com/v1/browse/featured-playlists?limit=${limit}&country=${country}&locale=${locale}&timestamp=2023-09-15T15%3A07%3A33&genre=${genre}`, parameters)
-    .then(response => response.json())
-    .then(data => {console.log(data.playlists.items); setPlaylist(data.playlists.items) ; setDisplaySection("playlist") })
-    .catch(error => console.error('Error:', error));
-  }
-  const albumSearch =()=> {
-    console.log('Album Search');
-    return
+    fetch(`https://api.spotify.com/v1/search?q=${encodeURI(emotionGener)}&type=track%2Cplaylist&market=IN`, parameters)
+      .then(response => response.json())
+      .then(data => { console.log(data.playlists.items); setPlaylist(data.playlists.items); setDisplaySection("playlist") })
+      .catch(error => console.error('Error:', error));
+    setType("Playlist Based");
   }
 
+  const LikedSongs = async () => {
+    setType("Like Based")
+    try {
 
+      const response = await fetch('https://api.spotify.com/v1/me/tracks?limit=50', {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer ' + accessToken
+        },
+      });
+      const data = await response.json();
+      console.log(data)
+      if (data.items) {
+        setTracks(data.items);
+        setDisplaySection("SongGrid");
+      } else {
+        toast.error('No tracks found in your library');
+      }
+    } catch (error) {
+      console.error('Error fetching albums:', error);
+    }
+  };
   return (
-    <>
+    <div>
 
-      {/* First Section Where FaceRecognition Will be done */}
-
+      {/* FIRST SECTION WHERE EMOTION RECOGNITION WILL BE DONE */}
       <section className="emotion-container emotion-container1 relative w-[100vw] pb-32 pt-10 text-white">
+
+        {/* BUTTON AND INPUT FIELDs */}
+
+        <div className='absolute top-2 right-2 bg-[#000000a1] backdrop-blur-md p-3 rounded-md'>
+          <a
+            className='flex items-center gap-2'
+            href={user?.external_urls?.spotify ?? "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img className='h-8 w-8 bg-black rounded-full ' src={`https://api.dicebear.com/5.x/initials/svg?seed=${encodeURI(user?.display_name)}`} alt="user-profile" /><p className='text-sm'>{user?.display_name}</p>
+          </a>
+        </div>
         <div className="search flex justify-center w-[65vw] m-auto items-center mb-20 relative z-10 rounded-xl">
           <input type="text" placeholder="Search song manually or Emotion based..."
             className="input relative z-10 input-bordered w-[100%] mr-2 border-[#fff] border-2"
@@ -220,24 +325,22 @@ function App() {
             onChange={event => setSearchValue(event.target.value)}
             value={searchValue}
           />
-
           <button className='btn btn-outline bg-black text-white border-2'
             onClick={() => search()}>
             Search Song
           </button>
-          <button className='emotionDetect btn btn-outline text-white bg-black mx-2 border-2' onClick={()=> emotionDetect()}>Detect Emotion</button>
+          <button className='emotionDetect btn btn-outline text-white bg-black mx-2 border-2' onClick={() => emotionDetect()}>Detect Emotion</button>
+          {true && <button className='btn btn-outline' onClick={Login}>Connect<Lottie style={{ height: '40px', marginLeft:'-9px' }} animationData={spotify} /></button>}
         </div>
 
-        <div className="emotion-detection flex justify-center text-center m-auto relative z-10 ">
+        {/* EMOTION CAPTURING VIDEO FIELD */}
 
+        <div className="emotion-detection flex justify-center text-center m-auto relative z-10 ">
           <div className="appvide">
             <video crossOrigin="anonymous" ref={videoRef} autoPlay></video>
           </div>
-
           <canvas ref={canvasRef} width="940" height="650"
             className="appcanvas" />
-
-
         </div>
 
       </section>
@@ -248,31 +351,25 @@ function App() {
         REACT LIBRARY FOR SPOTIFY WEB APPLICATION PLAYBACK
       /> */}
 
-
-
-
-      {/* Second Section */}
-      {/* "https://api.spotify.com/v1/search?query=genre%3Achill&type=track&locale=en-GB%2Cen-US%3Bq%3D0.9%2Cen%3Bq%3D0.8&offset=0&limit=20" */}
-      {/* https://api.spotify.com/v1/search?query=genre%3Achill&type=track&locale=hi-IN%3Bq%3D0.9 */}
-
-      <section className="emotion-container w-[100vw] py-8 bg-slate-400 text-white relative z-10">
-        {tracks.length === 0 ? (<p className='text-black font-semibold text-2xl w-[100%] text-center'>No Data available...!!</p>) : (
+      {/* SECTION FOR DISPLAYING OF SONGS */}
+      <section className="emotion-container w-[100vw] bg-[#191919] py-8 text-white relative z-10">
+        {tracks.length === 0 ? (<p className='text-[#b8ff5a] font-semibold text-2xl w-[100%] justify-center items-center flex gap-3'><span>FETCH SONGS TO DISPLAY.</span><span className='text-white'>Connect Spotify if not Connected</span></p>) : (
           <>
             <div className='songOptions w-[100%] flex justify-center items-center gap-3'>
-              <button onClick={GenreSearch} className='btn OptionButton genreButton' aria-label = {'Current Genre is ' + emotionGener}>Genre</button>
-              {/* <button onClick={albumSearch} className = 'btn OptionButton albumButton'>Album</button> */}
-              <button onClick={playlistSearch} className = 'btn OptionButton playlistButton'>Playlist</button>
-              <button onClick={search} className='btn OptionButton trackButton'>Track</button>
+              <button disabled={!currentEmotion} onClick={GenreSearch} className={`btn OptionButton genreButton  ${type === 'Genre Based' && 'OptionButtonActive'}`} aria-label={'Current Genre is ' + emotionGener}>Genre</button>
+              <button disabled={!currentEmotion} onClick={playlistSearch} className={`btn OptionButton playlistButton ${type === 'Playlist Based' && 'OptionButtonActive'}`}>Playlist</button>
+              <button onClick={search} className={`btn  OptionButton trackButton ${type === 'Search Result' && 'OptionButtonActive'}`}>Track</button>
+              <button onClick={LikedSongs} className={`btn OptionButton albumButton ${type === 'Like Based' && 'OptionButtonActive'}`}>Liked Songs</button>
 
             </div>
-          {
-            displaySection === "playlist" ? (<Playlist playlists = {playlist}/>):(<SongGrid tracks={tracks}/>)
-          }
+            {
+              displaySection === "playlist" ? (<Playlist type={type} playlists={playlist} />) : (<SongGrid tracks={tracks} type={type} />)
+            }
           </>
         )}
 
       </section>
-    </>
+    </div>
   );
 }
 
